@@ -1,36 +1,66 @@
-const { query } = require("express");
-const { graphql, buildSchema } = require("graphql");
-const { data } = require("./db");
+const express = require("express");
+const cryprto = require("crypto");
+const { graphqlHTTP } = require("express-graphql"); //đóng vai trò như middleware, nó sẽ handled các request dạng graphql từ client
+const app = express();
+const { buildSchema } = require("graphql");
+const { dataUsers, dataMessage } = require("./db");
 const schema = buildSchema(` 
  type Query {
      users: [User!]!
+     user(id:ID!): User 
+     messages:[Message!]!
  }
  type User {
      id: ID!
      email: String!
      name: String
      username: String
+     phone:String
+     messages: [Message]
+ }
+ type Message {
+  id: ID!
+  content: String!
+  userId: ID!
+}
+ type Mutation {
+   addUser(email:String!,name:String,username:String,phone:String): User
  }
 `);
 // Trong buildSchema thì sẽ có mặc định luôn có type Query mô tả những gì sẽ trả về cho client, nó sẽ bao gồm những gì và trường dữ liệu đó có kiểu giá trị như thế nào ?
 // Bạn sẽ tự define ra các loại type khác, hiểu đơn giản buildSchema sẽ cho phép bạn định nghĩa nên các schema,
 const rootValue = {
   // Nguồn cấp dữ liệu
-  users: () => data,
+  users: () => dataUsers,
+  messages: () => dataMessage,
+  user: ({ id }) => {
+    console.log(id);
+    const user = dataUsers.find((el) => {
+      console.log(el.id);
+      return el.id.toString() === id;
+    });
+    return user;
+  },
+  addUser: ({ email, phone, name, username }) => {
+    const user = {
+      id: cryprto.randomBytes(10).toString(),
+      email,
+      phone,
+      name,
+      username,
+    };
+    dataUsers.push(user);
+    return user;
+  },
 };
-graphql(
-  // define nguồn cấp dữ liệu, schema, và các fileld muốn get về
-  schema,
-  `
-    {
-      users {
-        id
-        name
-        email
-      }
-    }
-  `,
-  rootValue
-)
-  .then((data) => console.dir(data, { depth: null }))
-  .catch(console.log);
+app.use(
+  "/graphql",
+  graphqlHTTP({
+    schema,
+    rootValue,
+    graphiql: true,
+  })
+);
+app.listen(3000, () => {
+  console.log("Server is listening on port 3000");
+});
