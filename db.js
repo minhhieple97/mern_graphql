@@ -1,4 +1,4 @@
-exports.dataUser = [
+exports.dataUsers = [
   {
     id: "1",
     name: "Leanne Graham",
@@ -114,7 +114,7 @@ exports.dataUser = [
       bs: "revolutionize end-to-end systems",
     },
   },
-];
+]
 
 exports.dataMessage = [
   { id: "1", userId: "1", content: "aasdfs" },
@@ -123,4 +123,4 @@ exports.dataMessage = [
   { id: "4", userId: "4", content: "zxcvzxc" },
   { id: "5", userId: "5", content: "ererteret" },
   { id: "6", userId: "6", content: "xcvxcv" },
-];
+]
